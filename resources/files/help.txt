@@ -1,0 +1,3 @@
+Connect matching colors with pipe to create a Flow.
+Pair all colors, and cover the entire board to solve each puzzle in Flow Free. 
+But watch out, pipes cannot cross or overlap!
