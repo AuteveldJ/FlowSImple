@@ -6,7 +6,7 @@ package FlowFree.Model;
  */
 public class Player {
     private String name;
-    private int moves = 0;
+    private int moves;
     private int level;
 
     public Player(String name) {
@@ -29,7 +29,9 @@ public class Player {
         this.moves = moves;
     }
 
-    public int addMove(int move){return this.moves += move;}
+    public int addMove(int move) {
+        return this.moves += move;
+    }
 
     public int getLevel() {
         return level;

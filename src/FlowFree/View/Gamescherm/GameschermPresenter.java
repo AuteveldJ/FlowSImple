@@ -2,17 +2,21 @@ package FlowFree.View.Gamescherm;
 
 import FlowFree.Model.FlowFreeModel;
 import FlowFree.Model.Board;
-import FlowFree.Model.Player;
+import FlowFree.Model.FreeFlowException;
 import FlowFree.Model.Solution;
+import FlowFree.View.Help.HelpPresenter;
+import FlowFree.View.Help.HelpView;
 import FlowFree.View.Startschem.StartschermPresenter;
 import FlowFree.View.Startschem.StartschermView;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Scene;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -28,11 +32,10 @@ public class GameschermPresenter {
     private FlowFreeModel model;
     private Board board = new Board();
     private Solution solution = new Solution();
-    private Player speler = new Player("testspeler");
 
     private boolean won = false;
 
-    private boolean selected = false; //maak een selectie op het bord
+    private boolean selected = false;
     private int startx;
     private int starty;
     private int currentx;
@@ -67,16 +70,15 @@ public class GameschermPresenter {
         view.getBtnRestart().setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                //VELD TERUG INITIALISEREN ZOALS JUIST GEKOZEN SPEL
-                board.setRij(speler.getLevel());
-                board.setKolom(speler.getLevel());
+                board.setRij(model.getGamePlayer().getLevel());
+                board.setKolom(model.getGamePlayer().getLevel());
                 board.readFile();
 
-                solution.setRij(speler.getLevel());
-                solution.setKolom(speler.getLevel());
+                solution.setRij(model.getGamePlayer().getLevel());
+                solution.setKolom(model.getGamePlayer().getLevel());
                 solution.readsolution();
 
-                speler.setMoves(0);
+                model.getGamePlayer().setMoves(0);
                 view.getLblMoves().setText("Moves: ");
                 view.getLblSolution().setText("");
                 createBoard();
@@ -86,6 +88,7 @@ public class GameschermPresenter {
         view.getVijf().setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+
                 board.setRij(5);
                 board.setKolom(5);
                 board.readFile();
@@ -94,11 +97,13 @@ public class GameschermPresenter {
                 solution.setKolom(5);
                 solution.readsolution();
 
-                speler.setMoves(0);
-                speler.setLevel(5);
+                model.getGamePlayer().setMoves(0);
+                model.getGamePlayer().setLevel(5);
                 view.getLblMoves().setText("Moves: ");
                 view.getLblSolution().setText("");
+
                 createBoard();
+
             }
         });
         view.getZes().setOnAction(new EventHandler<ActionEvent>() {
@@ -112,8 +117,8 @@ public class GameschermPresenter {
                 solution.setKolom(6);
                 solution.readsolution();
 
-                speler.setMoves(0);
-                speler.setLevel(6);
+                model.getGamePlayer().setMoves(0);
+                model.getGamePlayer().setLevel(6);
                 view.getLblMoves().setText("Moves: ");
                 view.getLblSolution().setText("");
                 createBoard();
@@ -130,8 +135,8 @@ public class GameschermPresenter {
                 solution.setKolom(7);
                 solution.readsolution();
 
-                speler.setMoves(0);
-                speler.setLevel(7);
+                model.getGamePlayer().setMoves(0);
+                model.getGamePlayer().setLevel(7);
                 view.getLblMoves().setText("Moves: ");
                 view.getLblSolution().setText("");
                 createBoard();
@@ -148,8 +153,8 @@ public class GameschermPresenter {
                 solution.setKolom(8);
                 solution.readsolution();
 
-                speler.setMoves(0);
-                speler.setLevel(8);
+                model.getGamePlayer().setMoves(0);
+                model.getGamePlayer().setLevel(8);
                 view.getLblMoves().setText("Moves: ");
                 view.getLblSolution().setText("");
                 createBoard();
@@ -166,46 +171,72 @@ public class GameschermPresenter {
                 solution.setKolom(9);
                 solution.readsolution();
 
-                speler.setMoves(0);
-                speler.setLevel(9);
+                model.getGamePlayer().setMoves(0);
+                model.getGamePlayer().setLevel(9);
                 view.getLblMoves().setText("Moves: ");
                 view.getLblSolution().setText("");
                 createBoard();
+            }
+        });
+        view.getHelp().setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                HelpView helpView = new HelpView();
+                HelpPresenter helpPresenter = new HelpPresenter(model, helpView);
+                Scene scene = new Scene(helpView);
+                scene.getStylesheets().add("/stylesheets/flowfree.css");
+                Stage helpStage = new Stage();
+
+                helpStage.initOwner(view.getScene().getWindow());
+                helpStage.initModality(Modality.APPLICATION_MODAL);
+                helpStage.setScene(scene);
+                helpStage.setTitle("Help");
+                helpStage.getIcons().add(new Image("/images/fflogo.png"));
+                helpStage.showAndWait();
             }
         });
 
         view.getCanvas().setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
+
                 /* selectie maken van je positie waarop je nu klikt
-                 * als je klikt op het spelbord ga je deze positie waarop je klikt vastleggen */
+                 * wanneer je klikt op het spelbord ga je deze positie waarop je klikt vastleggen */
+
+                if (board.getBoard() != null) {
                 if (!selected) {
+
                     /* geheel getal voor kolom en rij index verkrijgen */
-                    startx = (int) (event.getX() / board.getGRIDWIDTH());
-                    starty = (int) (event.getY() / board.getGRIDWIDTH());
+                    startx = (int) (event.getX() / 50);
+                    starty = (int) (event.getY() / 50);
                     currentx = startx;
                     currenty = starty;
 
-                    /* als de positie waar je klikt een bol is ( > 0 uit de array) dan ga je deze positie selecteren */
                     if (board.getBoard()[starty][startx] > 0) {
                         selected = true;
                     }
-                }
 
-                System.out.println("testklik pressed " + "op locatie x: " + currentx + " y: " + currenty + " en selected = " + selected);
+                    /* selectie maken van een bol */
+                    // selected = model.dotSelection(startx, starty);
+                }
+                }
 
                 if (selected) {
                     /* alleen als je op een bol staat drag starten */
                     event.setDragDetect(true);
-
                     view.getCanvas().setOnMouseDragged(new EventHandler<MouseEvent>() {
                         @Override
                         public void handle(MouseEvent event) {
                             System.out.println("mouse dragged");
                             event.setDragDetect(false);
 
-                            dragx = (int) (event.getX() / board.getGRIDWIDTH());
-                            dragy = (int) (event.getY() / board.getGRIDWIDTH());
+                            dragx = (int) (event.getX() / 50);
+                            dragy = (int) (event.getY() / 50);
+/*
+                            model.drag(currentx, currenty, dragx, dragy, startx, starty);
+                            currentx = model.getCurrentx();
+                            currenty = model.getCurrenty();
+*/
 
                             if (dragx >= 0 && dragy >= 0 &&
                                     dragy < board.getBoard().length && dragx < board.getBoard()[0].length && board.getBoard()[dragy][dragx] == 0) {
@@ -213,20 +244,19 @@ public class GameschermPresenter {
                                         (dragx == currentx - 1 && dragy == currenty) || //links
                                         (dragx == currentx && dragy == currenty + 1) || //boven
                                         (dragx == currentx && dragy == currenty - 1)) { //onder
-                                    board.getBoard()[dragy][dragx] = -board.getBoard()[starty][startx]; //negatieve waarde is een pipe
+                                    board.getBoard()[dragy][dragx] = -board.getBoard()[starty][startx]; //negatieve waarde zal een pipe worden
+
                                     currentx = dragx;
                                     currenty = dragy;
                                 }
                             }
 
+
                             GraphicsContext gc = view.getCanvas().getGraphicsContext2D();
                             for (int i = 0; i < board.getBoard().length; i++) { //rij
                                 for (int j = 0; j < board.getBoard()[i].length; j++) { //kolom
-                                    pipex = i * board.getGRIDWIDTH();
-                                    pipey = j * board.getGRIDWIDTH();
-
-                                    int width = board.getGRIDWIDTH() - 30;
-                                    int rectOffset = 15;
+                                    pipex = i * 50;
+                                    pipey = j * 50;
 
                                     /* Richting bepalen waar je naar gaat */
                                     boolean left = false;
@@ -247,250 +277,64 @@ public class GameschermPresenter {
                                         below = true;
                                     }
 
-                                    //pipe tekenen, aaneenschakeling van fillrect over de negatieve waarden uit array
-                                    switch (board.getBoard()[j][i]) {
-                                        case -1:
-                                            gc.setFill(Color.RED);
-                                            gc.fillRect(pipex + rectOffset, pipey + rectOffset, width, width);
+                                    int val = board.getBoard()[j][i];
+                                    if (val < -9 || val > -1) continue; //waarden hierbuiten uitsluiten
+                                    Color color = Color.WHITE;
 
-                                            if (above && below) {
-                                                gc.fillRect(pipex + rectOffset, pipey, width, board.getGRIDWIDTH());
-                                            }
-                                            if (left && right) {
-                                                gc.fillRect(pipex, pipey + rectOffset, board.getGRIDWIDTH(), width);
-                                            }
-                                            if (above && left) { //LINKS ONDER
-                                                gc.fillRect(pipex, pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (above && right) { //RECHTS ONDER
-                                                gc.fillRect(pipex + (board.getGRIDWIDTH() / 2), pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (below && left) { //LINKS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
-                                            if (below && right) { //RECHTS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex + rectOffset, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
+                                    switch (val) {
+                                        case -1:
+                                            color = Color.RED;
                                             break;
                                         case -2:
-                                            gc.setFill(Color.BLUE);
-                                            gc.fillRect(pipex + rectOffset, pipey + rectOffset, width, width);
-
-                                            if (above && below) {
-                                                gc.fillRect(pipex + rectOffset, pipey, width, board.getGRIDWIDTH());
-                                            }
-                                            if (left && right) {
-                                                gc.fillRect(pipex, pipey + rectOffset, board.getGRIDWIDTH(), width);
-                                            }
-                                            if (above && left) { //LINKS ONDER
-                                                gc.fillRect(pipex, pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (above && right) { //RECHTS ONDER
-                                                gc.fillRect(pipex + (board.getGRIDWIDTH() / 2), pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (below && left) { //LINKS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
-                                            if (below && right) { //RECHTS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex + rectOffset, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
+                                            color = Color.BLUE;
                                             break;
                                         case -3:
-                                            gc.setFill(Color.GREEN);
-                                            gc.fillRect(pipex + rectOffset, pipey + rectOffset, width, width);
-
-                                            if (above && below) {
-                                                gc.fillRect(pipex + rectOffset, pipey, width, board.getGRIDWIDTH());
-                                            }
-                                            if (left && right) {
-                                                gc.fillRect(pipex, pipey + rectOffset, board.getGRIDWIDTH(), width);
-                                            }
-                                            if (above && left) { //LINKS ONDER
-                                                gc.fillRect(pipex, pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (above && right) { //RECHTS ONDER
-                                                gc.fillRect(pipex + (board.getGRIDWIDTH() / 2), pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (below && left) { //LINKS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
-                                            if (below && right) { //RECHTS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex + rectOffset, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
+                                            color = Color.GREEN;
                                             break;
                                         case -4:
-                                            gc.setFill(Color.ORANGE);
-                                            gc.fillRect(pipex + rectOffset, pipey + rectOffset, width, width);
-
-                                            if (above && below) {
-                                                gc.fillRect(pipex + rectOffset, pipey, width, board.getGRIDWIDTH());
-                                            }
-                                            if (left && right) {
-                                                gc.fillRect(pipex, pipey + rectOffset, board.getGRIDWIDTH(), width);
-                                            }
-                                            if (above && left) { //LINKS ONDER
-                                                gc.fillRect(pipex, pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (above && right) { //RECHTS ONDER
-                                                gc.fillRect(pipex + (board.getGRIDWIDTH() / 2), pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (below && left) { //LINKS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
-                                            if (below && right) { //RECHTS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex + rectOffset, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
+                                            color = Color.ORANGE;
                                             break;
                                         case -5:
-                                            gc.setFill(Color.YELLOW);
-                                            gc.fillRect(pipex + rectOffset, pipey + rectOffset, width, width);
-
-                                            if (above && below) {
-                                                gc.fillRect(pipex + rectOffset, pipey, width, board.getGRIDWIDTH());
-                                            }
-                                            if (left && right) {
-                                                gc.fillRect(pipex, pipey + rectOffset, board.getGRIDWIDTH(), width);
-                                            }
-                                            if (above && left) { //LINKS ONDER
-                                                gc.fillRect(pipex, pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (above && right) { //RECHTS ONDER
-                                                gc.fillRect(pipex + (board.getGRIDWIDTH() / 2), pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (below && left) { //LINKS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
-                                            if (below && right) { //RECHTS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex + rectOffset, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
+                                            color = Color.YELLOW;
                                             break;
                                         case -6:
-                                            gc.setFill(Color.TURQUOISE);
-                                            gc.fillRect(pipex + rectOffset, pipey + rectOffset, width, width);
-
-                                            if (above && below) {
-                                                gc.fillRect(pipex + rectOffset, pipey, width, board.getGRIDWIDTH());
-                                            }
-                                            if (left && right) {
-                                                gc.fillRect(pipex, pipey + rectOffset, board.getGRIDWIDTH(), width);
-                                            }
-                                            if (above && left) { //LINKS ONDER
-                                                gc.fillRect(pipex, pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (above && right) { //RECHTS ONDER
-                                                gc.fillRect(pipex + (board.getGRIDWIDTH() / 2), pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (below && left) { //LINKS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
-                                            if (below && right) { //RECHTS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex + rectOffset, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
+                                            color = Color.TURQUOISE;
                                             break;
                                         case -7:
-                                            gc.setFill(Color.PURPLE);
-                                            gc.fillRect(pipex + rectOffset, pipey + rectOffset, width, width);
-
-                                            if (above && below) {
-                                                gc.fillRect(pipex + rectOffset, pipey, width, board.getGRIDWIDTH());
-                                            }
-                                            if (left && right) {
-                                                gc.fillRect(pipex, pipey + rectOffset, board.getGRIDWIDTH(), width);
-                                            }
-                                            if (above && left) { //LINKS ONDER
-                                                gc.fillRect(pipex, pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (above && right) { //RECHTS ONDER
-                                                gc.fillRect(pipex + (board.getGRIDWIDTH() / 2), pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (below && left) { //LINKS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
-                                            if (below && right) { //RECHTS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex + rectOffset, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
+                                            color = Color.PURPLE;
                                             break;
                                         case -8:
-                                            gc.setFill(Color.HOTPINK);
-                                            gc.fillRect(pipex + rectOffset, pipey + rectOffset, width, width);
-
-                                            if (above && below) {
-                                                gc.fillRect(pipex + rectOffset, pipey, width, board.getGRIDWIDTH());
-                                            }
-                                            if (left && right) {
-                                                gc.fillRect(pipex, pipey + rectOffset, board.getGRIDWIDTH(), width);
-                                            }
-                                            if (above && left) { //LINKS ONDER
-                                                gc.fillRect(pipex, pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (above && right) { //RECHTS ONDER
-                                                gc.fillRect(pipex + (board.getGRIDWIDTH() / 2), pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (below && left) { //LINKS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
-                                            if (below && right) { //RECHTS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex + rectOffset, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
+                                            color = Color.HOTPINK;
                                             break;
                                         case -9:
-                                            gc.setFill(Color.BROWN);
-                                            gc.fillRect(pipex + rectOffset, pipey + rectOffset, width, width);
-                                            if (above && below) {
-                                                gc.fillRect(pipex + rectOffset, pipey, width, board.getGRIDWIDTH());
-                                            }
-                                            if (left && right) {
-                                                gc.fillRect(pipex, pipey + rectOffset, board.getGRIDWIDTH(), width);
-                                            }
-                                            if (above && left) { //LINKS ONDER
-                                                gc.fillRect(pipex, pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (above && right) { //RECHTS ONDER
-                                                gc.fillRect(pipex + (board.getGRIDWIDTH() / 2), pipey + rectOffset, width, width);
-                                                gc.fillRect(pipex + rectOffset, pipey, width, width);
-                                            }
-                                            if (below && left) { //LINKS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
-                                            if (below && right) { //RECHTS BOVEN
-                                                gc.fillRect(pipex + rectOffset, pipey + (board.getGRIDWIDTH() - rectOffset), width, (board.getGRIDWIDTH() - rectOffset));
-                                                gc.fillRect(pipex + rectOffset, pipey + rectOffset, (board.getGRIDWIDTH() - rectOffset), width);
-                                            }
+                                            color = Color.BROWN;
                                             break;
+                                    }
+
+                                    gc.setFill(color);
+                                    gc.fillRect(pipex + model.getRectOffset(), pipey + model.getRectOffset(), model.getPipeWidth(), model.getPipeWidth());
+
+                                    if (above && below) {
+                                        gc.fillRect(pipex + model.getRectOffset(), pipey, model.getPipeWidth(), 50);
+                                    }
+                                    if (left && right) {
+                                        gc.fillRect(pipex, pipey + model.getRectOffset(), 50, model.getPipeWidth());
+                                    }
+                                    if (above && left) { //LINKS ONDER
+                                        gc.fillRect(pipex, pipey + model.getRectOffset(), model.getPipeWidth(), model.getPipeWidth());
+                                        gc.fillRect(pipex + model.getRectOffset(), pipey, model.getPipeWidth(), model.getPipeWidth());
+                                    }
+                                    if (above && right) { //RECHTS ONDER
+                                        gc.fillRect(pipex + (50 / 2), pipey + model.getRectOffset(), model.getPipeWidth(), model.getPipeWidth());
+                                        gc.fillRect(pipex + model.getRectOffset(), pipey, model.getPipeWidth(), model.getPipeWidth());
+                                    }
+                                    if (below && left) { //LINKS BOVEN
+                                        gc.fillRect(pipex + model.getRectOffset(), pipey + (50 - model.getRectOffset()), model.getPipeWidth(), (50 - model.getRectOffset()));
+                                        gc.fillRect(pipex, pipey + model.getRectOffset(), (50 - model.getRectOffset()), model.getPipeWidth());
+                                    }
+                                    if (below && right) { //RECHTS BOVEN
+                                        gc.fillRect(pipex + model.getRectOffset(), pipey + (50 - model.getRectOffset()), model.getPipeWidth(), (50 - model.getRectOffset()));
+                                        gc.fillRect(pipex + model.getRectOffset(), pipey + model.getRectOffset(), (50 - model.getRectOffset()), model.getPipeWidth());
                                     }
                                 }
                             }
@@ -517,30 +361,45 @@ public class GameschermPresenter {
         view.getCanvas().setOnMouseReleased(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                //uitlezen van bord
 
-                System.out.println("Ingevuld board");
-                for (int[] ints : board.getBoard()) {
-                    System.out.println(Arrays.toString(ints));
-                }
-                System.out.println("Oplossing");
-                for (int[] ints : solution.getSolution()) {
-                    System.out.println(Arrays.toString(ints));
+                if (board.getBoard() != null) {
+                    if (Arrays.deepEquals(board.getBoard(), solution.getSolution())) {
+                        view.getLblSolution().setStyle("-fx-font-size: 20");
+                        view.getLblSolution().setText("Oplossing gevonden!");
+                        model.setWon(true);
+
+                        try {
+                            model.saveGame(board.getRij());
+                        } catch (FreeFlowException e) {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            try {
+                                DialogPane dialogPane = alert.getDialogPane();
+                                dialogPane.setGraphic(new Label());
+                                dialogPane.getStylesheets().add("/stylesheets/flowfree.css");
+                                dialogPane.getStyleClass().add("alert-window");
+                            } catch (Exception ignored) {
+                            }
+                            alert.setTitle("Error");
+                            alert.setContentText(e.getMessage());
+                            try {
+                                Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+                                stage.getIcons().add(new Image("/images/fflogo.png"));
+                            } catch (Exception ignored) {
+                            }
+
+                            alert.show();
+                        }
+                    }
                 }
 
-                if (Arrays.deepEquals(board.getBoard(), solution.getSolution())) {
-                    view.getLblSolution().setStyle("-fx-font-size: 20");
-                    view.getLblSolution().setText("Oplossing gevonden!");
-                    model.setWon(true);
-                }
                 /* muis loslaten op een bol want = selected */
                 if (selected) {
                     selected = false;
                     endx = -1;
                     endy = -1;
 
-                    speler.addMove(1);
-                    view.getLblMoves().setText("Moves: " + speler.getMoves());
+                    model.getGamePlayer().addMove(1);
+                    view.getLblMoves().setText("Moves: " + model.getGamePlayer().getMoves());
 
                     /* doorzoeken van het spelbord, rij per rij, kolom per kolom
                      * startpositie is x = -1, y = -1 (linksboven) */
@@ -551,15 +410,12 @@ public class GameschermPresenter {
                             je op een zelfde kleur bent (index array) */
   /*                          if (!(j == startx && i == starty) && board.getBoard()[i][j] == board.getBoard()[startx][starty]) {
                                 endx = (int) (event.getX() / board.getGRIDWIDTH());
-
                                 endy = (int) (event.getY() / board.getGRIDWIDTH());
-
                                 //EINDLOCATIE NOG NAZIEN
                             }
                         }
                     }
 /*
-
                     /*
                     if ((currentx == endx && currenty == endy + 1) ||
                             (currentx == endx && currenty == endy - 1) ||
@@ -567,7 +423,7 @@ public class GameschermPresenter {
                             (currentx == endx - 1 && currenty == endy)) {
                         //check win
                     } else {
-                        /*loslaten is reset van pipe*/
+                    /*loslaten is reset van pipe*/
                     //NAZIEN
                     /*
                         for (int i = 0; i < board.getBoard().length; i++) {
@@ -580,7 +436,6 @@ public class GameschermPresenter {
                         }
                     }
                     */
-
                 }
             }
         });
@@ -623,7 +478,6 @@ public class GameschermPresenter {
         });
     }
 
-
     private void createBoard() {
         //canvas eerst leegmaken met clearrect
         //canvas size aanpassen zodat deze mooi in het midden van het veld komt
@@ -636,6 +490,7 @@ public class GameschermPresenter {
         //5X5 = 5 kleuren, 6x6, 7X7, 8X8 = 6 kleuren ,9X9 = 9 kleuren
         //board tekenen
         gc.setStroke(Color.WHITE);
+
         for (int i = 0; i < board.getBoard().length; i++) { //rij
             for (int j = 0; j < board.getBoard()[i].length; j++) { //kolom
                 int x = i * board.getGRIDWIDTH();
@@ -646,44 +501,41 @@ public class GameschermPresenter {
 
                 gc.strokeRect(x, y, board.getGRIDWIDTH(), board.getGRIDWIDTH());
 
-                switch (board.getBoard()[j][i]) {
+                int val = board.getBoard()[j][i];
+                if (val < 1 || val > 9) continue; //waarden hierbuiten uitsluiten
+                Color color = Color.WHITE;
+
+                switch (val) {
                     case 1:
-                        gc.setFill(Color.RED);
-                        gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
+                        color = Color.RED;
                         break;
                     case 2:
-                        gc.setFill(Color.BLUE);
-                        gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
+                        color = Color.BLUE;
                         break;
                     case 3:
-                        gc.setFill(Color.GREEN);
-                        gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
+                        color = Color.GREEN;
                         break;
                     case 4:
-                        gc.setFill(Color.ORANGE);
-                        gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
+                        color = Color.ORANGE;
                         break;
                     case 5:
-                        gc.setFill(Color.YELLOW);
-                        gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
+                        color = Color.YELLOW;
                         break;
                     case 6:
-                        gc.setFill(Color.TURQUOISE);
-                        gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
+                        color = Color.TURQUOISE;
                         break;
                     case 7:
-                        gc.setFill(Color.PURPLE);
-                        gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
+                        color = Color.PURPLE;
                         break;
                     case 8:
-                        gc.setFill(Color.HOTPINK);
-                        gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
+                        color = Color.HOTPINK;
                         break;
                     case 9:
-                        gc.setFill(Color.BROWN);
-                        gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
+                        color = Color.BROWN;
                         break;
                 }
+                gc.setFill(color);
+                gc.fillOval(x + circOffset, y + circOffset, diameter, diameter);
             }
         }
     }

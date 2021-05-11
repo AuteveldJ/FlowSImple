@@ -12,7 +12,7 @@ import javafx.scene.layout.BorderPane;
  */
 public class HighscoreView extends BorderPane {
 
-    private Label lblTest;
+    private Label lblHighscore;
     private Button btnBack;
 
     public HighscoreView() {
@@ -21,16 +21,16 @@ public class HighscoreView extends BorderPane {
     }
 
     private void initialiseNodes() {
-        lblTest = new Label("Hier komen de highscores uit een textfile");
+        lblHighscore = new Label();
         btnBack = new Button("Back");
     }
 
     private void layoutNodes() {
-        lblTest.setPrefSize(300, 400);
-        lblTest.setAlignment(Pos.CENTER);
+        lblHighscore.setPrefSize(300, 400);
+        lblHighscore.setAlignment(Pos.CENTER);
 
         this.setPadding(new Insets(10));
-        this.setCenter(lblTest);
+        this.setCenter(lblHighscore);
         this.setBottom(btnBack);
         this.setStyle("-fx-background-color: SLATEGREY;");
 
@@ -39,5 +39,9 @@ public class HighscoreView extends BorderPane {
 
     public Button getBtnBack() {
         return btnBack;
+    }
+
+    public Label getLblHighscore() {
+        return lblHighscore;
     }
 }

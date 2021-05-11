@@ -57,7 +57,6 @@ public class StartschermPresenter {
 
                     model.createPlayerlist(view.getTxtPlayerName().getText());
                     GameschermView gameschermView = new GameschermView();
-                    FlowFreeModel model = new FlowFreeModel();
                     GameschermPresenter gameschermPresenter = new GameschermPresenter(model, gameschermView);
 
                     view.getScene().setRoot(gameschermView);
@@ -75,6 +74,7 @@ public class StartschermPresenter {
 
                 view.getScene().setRoot(highscoreView);
                 highscoreView.getScene().getWindow().sizeToScene();
+                highScorePresenter.windowsHandler();
             }
         });
 

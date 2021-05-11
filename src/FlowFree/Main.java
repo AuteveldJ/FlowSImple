@@ -1,5 +1,6 @@
 package FlowFree;
 
+import FlowFree.Model.Board;
 import FlowFree.Model.FlowFreeModel;
 import FlowFree.View.Loadscherm.LoadschermPresenter;
 import FlowFree.View.Loadscherm.LoadschermView;
